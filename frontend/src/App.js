@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Dashboard from './components/Dashboard';
 import QRScanner from './components/QRScanner';
 import CheckInSuccess from './components/CheckInSuccess';
-import QRGenerator from './components/QRGenerator';
 import './App.css';
 
 function App() {
@@ -14,7 +13,6 @@ function App() {
           <Route path="/" element={<Dashboard />} />
           <Route path="/scan" element={<QRScanner />} />
           <Route path="/checkin-success" element={<CheckInSuccess />} />
-          <Route path="/qr-generator" element={<QRGenerator />} />
         </Routes>
       </div>
     </Router>

@@ -1,18 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchBuildings } from '../api';
+import CampusMap from './CampusMap';
+import Logo from './Logo';
+import InteractiveCampusMap from './InteractiveCampusMap';
 import './Dashboard.css';
 
+
 function Dashboard() {
+  // ALL hooks must be at the top
   const navigate = useNavigate();
   const [buildings, setBuildings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState(''); // Moved here!
 
   useEffect(() => {
     loadBuildings();
-    
-    // Auto-refresh every 10 seconds
+  
     const interval = setInterval(() => {
       loadBuildings();
     }, 10000);
@@ -34,22 +39,12 @@ function Dashboard() {
     }
   };
 
-  const getCrowdLevel = (occupancy, capacity) => {
-    const percentage = (occupancy / capacity) * 100;
-    if (percentage < 50) return 'low';
-    if (percentage < 80) return 'medium';
-    return 'high';
-  };
+  // Filter buildings based on search
+  const filteredBuildings = buildings.filter(building =>
+    building.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-  const getCrowdColor = (level) => {
-    switch(level) {
-      case 'low': return '#10b981';
-      case 'medium': return '#f59e0b';
-      case 'high': return '#ef4444';
-      default: return '#6b7280';
-    }
-  };
-
+  // Early return comes AFTER all hooks
   if (loading && buildings.length === 0) {
     return (
       <div className="dashboard">
@@ -59,58 +54,59 @@ function Dashboard() {
   }
 
   return (
-    <div className="dashboard">
-      <header>
-        <h1>🎓 UniAuto Crowd Tracker</h1>
-        <p>Live occupancy across campus</p>
-        {error && <div className="error-message">{error}</div>}
-      </header>
-      
-      <div className="dashboard-actions">
-        <button className="scan-button-main" onClick={() => navigate('/scan')}>
-          📱 Scan QR Code
-        </button>
-        <button className="generate-button-main" onClick={() => navigate('/qr-generator')}>
-          🎯 Generate QR Codes
-        </button>
-      </div>
-      
-      <div className="buildings-grid">
-        {buildings.map(building => {
-          const level = getCrowdLevel(building.occupancy, building.capacity);
-          return (
-            <div 
-              key={building.id} 
-              className="building-card"
-              style={{ borderLeft: `5px solid ${getCrowdColor(level)}` }}
-            >
-              <h3>{building.name}</h3>
-              <div className="occupancy">
-                <span className="number">{building.occupancy}</span>
-                <span className="capacity">/ {building.capacity}</span>
-              </div>
-              <div className="progress-bar">
-                <div 
-                  className="progress-fill"
-                  style={{ 
-                    width: `${(building.occupancy / building.capacity) * 100}%`,
-                    backgroundColor: getCrowdColor(level)
-                  }}
-                />
-              </div>
-              <div className="crowd-label" style={{ color: getCrowdColor(level) }}>
-                {level.toUpperCase()} CROWD
-              </div>
+  <div className="dashboard">
+    <header className="dashboard-header">
+      <div className="header-top">
+        <Logo />
+        <div className="header-stats">
+          <div className="stat-card">
+            <div className="stat-number">{buildings.length}</div>
+            <div className="stat-label">Buildings</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-number">
+              {buildings.reduce((sum, b) => sum + b.occupancy, 0)}
             </div>
-          );
-        })}
+            <div className="stat-label">Total People</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-number">
+              {buildings.filter(b => (b.occupancy/b.capacity) < 0.5).length}
+            </div>
+            <div className="stat-label">Available</div>
+          </div>
+        </div>
       </div>
-      
-      <div className="last-updated">
-        Last updated: {new Date().toLocaleTimeString()}
+      <div className="header-bottom">
+        <h1>Campus Occupancy Monitor</h1>
+        <p>Real-time crowd tracking across UNSW Kensington</p>
       </div>
+      {error && <div className="error-message">{error}</div>}
+    </header>
+    
+    <div className="dashboard-actions">
+      <button className="scan-button-main" onClick={() => navigate('/scan')}>
+        📱 Scan QR Code
+      </button>
     </div>
-  );
+
+    <div className="search-container">
+      <input
+        type="text"
+        placeholder="🔍 Search buildings..."
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        className="search-input"
+      />
+    </div>
+
+    <InteractiveCampusMap buildings={filteredBuildings} />
+    
+    <div className="last-updated">
+      Last updated: {new Date().toLocaleTimeString()}
+    </div>
+  </div>
+);
 }
 
 export default Dashboard;

@@ -1,5 +1,5 @@
 // Replace this with your backend URL
-const API_BASE_URL = 'http://localhost:5000/api'; //replace this with the url
+const API_BASE_URL = 'https://hackathon-devsoc.onrender.com'; //replace this with the url
 // Fetch all buildings with occupancy data
 export const fetchBuildings = async () => {
   try {
@@ -8,15 +8,32 @@ export const fetchBuildings = async () => {
       throw new Error('Failed to fetch buildings');
     }
     const data = await response.json();
-    return data;
+    
+    // Add occupancy data to the buildings from backend
+    return data.map(building => ({
+      ...building,
+      occupancy: building.occupancy || Math.floor(Math.random() * 100), // Use backend data or random
+      capacity: building.capacity || 100
+    }));
   } catch (error) {
     console.error('Error fetching buildings:', error);
-    // Return dummy data if API fails
+    // Return realistic dummy data for major UNSW buildings
     return [
-      { id: 1, name: 'Library', occupancy: 75, capacity: 100 },
-      { id: 2, name: 'Quad', occupancy: 30, capacity: 50 },
-      { id: 3, name: 'Law Building', occupancy: 90, capacity: 100 },
-      { id: 4, name: 'Engineering', occupancy: 45, capacity: 80 },
+      { id: 'library', name: 'Main Library', occupancy: 150, capacity: 200 },
+      { id: 'mathews', name: 'Mathews Building', occupancy: 80, capacity: 120 },
+      { id: 'clb', name: 'Central Lecture Block', occupancy: 200, capacity: 300 },
+      { id: 'hilmer', name: 'Hilmer Building', occupancy: 45, capacity: 80 },
+      { id: 'sci_eng', name: 'Science & Engineering', occupancy: 180, capacity: 250 },
+      { id: 'business_school', name: 'Business School', occupancy: 220, capacity: 300 },
+      { id: 'law', name: 'Law Building', occupancy: 95, capacity: 150 },
+      { id: 'blockhouse', name: 'Blockhouse', occupancy: 30, capacity: 60 },
+      { id: 'tyree', name: 'Tyree Energy Building', occupancy: 70, capacity: 100 },
+      { id: 'roundhouse', name: 'Roundhouse', occupancy: 120, capacity: 200 },
+      { id: 'squarehouse', name: 'Squarehouse', occupancy: 80, capacity: 150 },
+      { id: 'morven_brown', name: 'Morven Brown Building', occupancy: 140, capacity: 200 },
+      { id: 'quadrangle', name: 'Quadrangle Building', occupancy: 60, capacity: 100 },
+      { id: 'red_centre', name: 'Red Centre', occupancy: 190, capacity: 250 },
+      { id: 'scientia', name: 'Scientia Building', occupancy: 85, capacity: 120 },
     ];
   }
 };
