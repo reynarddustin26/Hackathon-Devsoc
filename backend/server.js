@@ -1,20 +1,21 @@
+
+// server.js
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 
-const buildingRoutes = require('./routes/buildings');
-
 const app = express();
+
+// Middleware
 app.use(cors());
 app.use(express.json());
 
 // Routes
-app.use('/api/buildings', buildingRoutes);
+const buildingsRouter = require('./backend/routes/buildings');
+app.use('/api/buildings', buildingsRouter);
 
-// Root test route
-app.get('/', (req, res) => {
-  res.json({ message: 'UNSW Crowd Tracker Backend 🚀' });
-});
-
+// Render requires PORT from environment
 const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`✅ Server running on port ${PORT}`);
+});
