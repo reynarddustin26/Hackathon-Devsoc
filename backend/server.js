@@ -11,7 +11,7 @@ app.use(cors());
 app.use(express.json());
 
 // Routes
-const buildingsRouter = require('./backend/routes/buildings');
+const buildingsRouter = require('./routes/buildings');
 app.use('/api/buildings', buildingsRouter);
 
 // Render requires PORT from environment
