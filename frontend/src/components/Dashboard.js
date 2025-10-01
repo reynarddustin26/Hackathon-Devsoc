@@ -22,22 +22,29 @@ function Dashboard() {
     // Initial load
     loadBuildings();
     
-    // Set up polling at a reasonable interval
+    // Set up more frequent polling
     const pollInterval = setInterval(async () => {
       if (mounted) {
+        console.log('🔄 Polling for building updates...');
         await loadBuildings();
       }
-    }, 10000); // Poll every 10 seconds
+    }, 5000); // Poll every 5 seconds for more responsive updates
     
-    // Subscribe to immediate updates from check-ins
+    // Subscribe to immediate updates from check-ins/outs
     const unsubscribe = onBuildingsUpdate((newData) => {
-      if (mounted && newData) {
-        setBuildings(newData);
+      if (mounted) {
+        if (newData) {
+          console.log('📡 Received real-time update:', newData.length, 'buildings');
+          setBuildings(newData);
+        } else {
+          console.warn('⚠️ Received empty update');
+        }
       }
     });
 
     // Cleanup function
     return () => {
+      console.log('🗑 Cleaning up Dashboard subscriptions');
       mounted = false;
       clearInterval(pollInterval);
       unsubscribe();

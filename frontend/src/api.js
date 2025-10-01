@@ -27,10 +27,28 @@ export const onBuildingsUpdate = (callback) => {
 
 // Notify all registered callbacks if data has changed
 const notifyDataUpdate = (newData) => {
-  // Only notify if the data has actually changed
-  if (JSON.stringify(lastData) !== JSON.stringify(newData)) {
-    lastData = newData;
-    dataUpdateCallbacks.forEach(callback => callback(newData));
+  try {
+    // Only notify if we have callbacks and new data
+    if (dataUpdateCallbacks.length > 0 && newData) {
+      console.log('📡 Received new building data:', newData.length, 'buildings');
+      // Compare current and new data
+      const hasChanged = !lastData || JSON.stringify(lastData) !== JSON.stringify(newData);
+      if (hasChanged) {
+        console.log('🔄 Data changed, notifying', dataUpdateCallbacks.length, 'listeners');
+        lastData = newData;
+        dataUpdateCallbacks.forEach(callback => {
+          try {
+            callback(newData);
+          } catch (callbackError) {
+            console.error('Error in update callback:', callbackError);
+          }
+        });
+      } else {
+        console.log('📊 Data unchanged, skipping update');
+      }
+    }
+  } catch (error) {
+    console.error('Error in notifyDataUpdate:', error);
   }
 };
 
@@ -61,12 +79,13 @@ export const fetchBuildings = async () => {
     // Try to parse the response as JSON
     try {
       const data = JSON.parse(responseText);
-      if (Array.isArray(data) && data.length > 0) {
-        // Update last known good data
-        lastData = data;
+      if (Array.isArray(data)) {
+        console.log('📥 Fetched building data:', data.length, 'buildings');
+        // Always notify with new data, even if empty
         notifyDataUpdate(data);
         return data;
       } else {
+        console.warn('⚠️ Invalid data format, using defaults');
         return defaultBuildingsData;
       }
     } catch (e) {

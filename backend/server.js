@@ -6,11 +6,22 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:3000', 'https://hackathon-dev-frontend.onrender.com'],
+  origin: ['http://localhost:3000', 'https://hackathon-dev-frontend.onrender.com', 'https://hackathon-dev.onrender.com'],
   methods: ['GET', 'POST'],
   credentials: true
 }));
 app.use(express.json());
+
+// Log all requests for debugging
+app.use((req, res, next) => {
+  console.log('📡 Request:', {
+    method: req.method,
+    url: req.url,
+    body: req.body,
+    headers: req.headers.origin
+  });
+  next();
+});
 
 // Add headers for debugging
 app.use((req, res, next) => {
