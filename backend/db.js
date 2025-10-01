@@ -5,7 +5,7 @@ let db;
 async function connectDB() {
   if (db) return db;  // reuse connection
 
-  const client = new MongoClient(process.env.MONGO_URI);
+  const client = new MongoClient(process.env.MONGODB_URI);
   await client.connect();
   console.log("✅ MongoDB connected");
 
