@@ -40,7 +40,6 @@ function Dashboard() {
     return () => {
       mounted = false;
       clearInterval(pollInterval);
-      clearInterval(backgroundInterval);
       unsubscribe();
     };
   }, []);
