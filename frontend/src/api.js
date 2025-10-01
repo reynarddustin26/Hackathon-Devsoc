@@ -55,15 +55,30 @@ const notifyDataUpdate = (newData) => {
 // Import default data
 import { defaultBuildingsData } from './data/defaultBuildings';
 
+// Cache timeout in milliseconds (3 seconds)
+const CACHE_TIMEOUT = 3000;
+let lastFetchTime = 0;
+
 // Fetch all buildings with occupancy data
-export const fetchBuildings = async () => {
+export const fetchBuildings = async (forceRefresh = false) => {
   try {
+    const now = Date.now();
+    // Use cache unless force refresh or cache expired
+    if (!forceRefresh && lastData && (now - lastFetchTime < CACHE_TIMEOUT)) {
+      console.log('💾 Using cached data');
+      return lastData;
+    }
+
     const url = getUrl(ENDPOINTS.buildings);
+    console.log('📬 Fetching fresh data from:', url);
+    
     const response = await fetch(url, {
       method: 'GET',
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache',  // Prevent browser caching
+        'Pragma': 'no-cache'
       },
       mode: 'cors'
     });
@@ -99,6 +114,7 @@ export const fetchBuildings = async () => {
 
 // Log a check-in
 export const checkIn = async (buildingName) => {
+  console.log('📍 Checking in to:', buildingName);
   try {
     const response = await fetch(getUrl(ENDPOINTS.checkin), {
       method: 'POST',
@@ -127,6 +143,7 @@ export const checkIn = async (buildingName) => {
 
 // Log a checkout
 export const checkOut = async (buildingName) => {
+  console.log('🚪 Checking out from:', buildingName);
   try {
     const response = await fetch(getUrl(ENDPOINTS.checkout), {
       method: 'POST',

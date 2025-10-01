@@ -14,21 +14,39 @@ function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all'); // 'all', 'busiest', 'moderate', 'available'
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [lastUpdate, setLastUpdate] = useState(new Date());
+  const [forceUpdate, setForceUpdate] = useState(0);  // Used to force re-fetch // 'all', 'busiest', 'moderate', 'available'
 
+
+  // Refresh data when page becomes visible again
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        console.log('📥 Page visible, refreshing data...');
+        loadBuildings(true);  // Force refresh when page becomes visible
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
+
+  // Main data loading and polling effect
   useEffect(() => {
     let mounted = true;
     
     // Initial load
-    loadBuildings();
+    loadBuildings(true);  // Force fresh data on mount
     
     // Set up more frequent polling
     const pollInterval = setInterval(async () => {
       if (mounted) {
         console.log('🔄 Polling for building updates...');
         await loadBuildings();
+        setLastUpdate(new Date());  // Update timestamp
       }
-    }, 5000); // Poll every 5 seconds for more responsive updates
+    }, 3000); // Poll every 3 seconds for more responsive updates
     
     // Subscribe to immediate updates from check-ins/outs
     const unsubscribe = onBuildingsUpdate((newData) => {
@@ -51,10 +69,16 @@ function Dashboard() {
     };
   }, []);
 
-  const loadBuildings = async () => {
+  const handleRefresh = async () => {
+    console.log('🔄 Manual refresh requested');
+    await loadBuildings();
+    setLastUpdate(new Date());
+  };
+
+  const loadBuildings = async (forceRefresh = false) => {
     try {
       setLoading(true);
-      console.log('🔄 Loading buildings...');
+      console.log('🔄 Loading buildings...', forceRefresh ? '(forced)' : '');
       
       const data = await fetchBuildings();
       console.log('📥 Received data:', data);
