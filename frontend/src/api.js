@@ -1,40 +1,48 @@
-// Replace this with your backend URL
-const API_BASE_URL = 'https://hackathon-devsoc.onrender.com'; //replace this with the url
+const API_BASE_URL = 'https://hackathon-devsoc.onrender.com/api/buildings'; 
+
+// Keep track of the last data we received
+let lastData = null;
+
+// List of callbacks to notify when data changes
+let dataUpdateCallbacks = [];
+
+// Register a callback to be notified when building data changes
+export const onBuildingsUpdate = (callback) => {
+  dataUpdateCallbacks.push(callback);
+  return () => {
+    dataUpdateCallbacks = dataUpdateCallbacks.filter(cb => cb !== callback);
+  };
+};
+
+// Notify all registered callbacks if data has changed
+const notifyDataUpdate = (newData) => {
+  // Only notify if the data has actually changed
+  if (JSON.stringify(lastData) !== JSON.stringify(newData)) {
+    lastData = newData;
+    dataUpdateCallbacks.forEach(callback => callback(newData));
+  }
+};
+
 // Fetch all buildings with occupancy data
 export const fetchBuildings = async () => {
   try {
-    const response = await fetch(`${API_BASE_URL}/buildings`);
+    console.log('Fetching building data...'); // Debug log
+    const response = await fetch(API_BASE_URL);
     if (!response.ok) {
       throw new Error('Failed to fetch buildings');
     }
     const data = await response.json();
     
-    // Add occupancy data to the buildings from backend
-    return data.map(building => ({
-      ...building,
-      occupancy: building.occupancy || Math.floor(Math.random() * 100), // Use backend data or random
-      capacity: building.capacity || 100
-    }));
+    // Log the received data for debugging
+    console.log('Received building data:', data);
+    
+    // Notify subscribers if data has changed
+    notifyDataUpdate(data);
+    
+    return data; // Backend provides all required data
   } catch (error) {
     console.error('Error fetching buildings:', error);
-    // Return realistic dummy data for major UNSW buildings
-    return [
-      { id: 'library', name: 'Main Library', occupancy: 150, capacity: 200 },
-      { id: 'mathews', name: 'Mathews Building', occupancy: 80, capacity: 120 },
-      { id: 'clb', name: 'Central Lecture Block', occupancy: 200, capacity: 300 },
-      { id: 'hilmer', name: 'Hilmer Building', occupancy: 45, capacity: 80 },
-      { id: 'sci_eng', name: 'Science & Engineering', occupancy: 180, capacity: 250 },
-      { id: 'business_school', name: 'Business School', occupancy: 220, capacity: 300 },
-      { id: 'law', name: 'Law Building', occupancy: 95, capacity: 150 },
-      { id: 'blockhouse', name: 'Blockhouse', occupancy: 30, capacity: 60 },
-      { id: 'tyree', name: 'Tyree Energy Building', occupancy: 70, capacity: 100 },
-      { id: 'roundhouse', name: 'Roundhouse', occupancy: 120, capacity: 200 },
-      { id: 'squarehouse', name: 'Squarehouse', occupancy: 80, capacity: 150 },
-      { id: 'morven_brown', name: 'Morven Brown Building', occupancy: 140, capacity: 200 },
-      { id: 'quadrangle', name: 'Quadrangle Building', occupancy: 60, capacity: 100 },
-      { id: 'red_centre', name: 'Red Centre', occupancy: 190, capacity: 250 },
-      { id: 'scientia', name: 'Scientia Building', occupancy: 85, capacity: 120 },
-    ];
+    return lastData || []; // Return last known data if available, empty array as fallback
   }
 };
 
@@ -47,7 +55,7 @@ export const checkIn = async (buildingName) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        buildingName: buildingName,
+        buildingName,
         timestamp: new Date().toISOString(),
       }),
     });
@@ -56,16 +64,17 @@ export const checkIn = async (buildingName) => {
       throw new Error('Failed to check in');
     }
     
-    const data = await response.json();
-    return data;
+    const result = await response.json();
+    // Notify all components that data has changed
+    notifyDataUpdate();
+    return result;
   } catch (error) {
     console.error('Error checking in:', error);
-    // For demo purposes, still return success
     return { success: true, message: 'Check-in recorded (offline mode)' };
   }
 };
 
-// Log a checkout (optional)
+// Log a checkout
 export const checkOut = async (buildingName) => {
   try {
     const response = await fetch(`${API_BASE_URL}/checkout`, {
@@ -74,7 +83,7 @@ export const checkOut = async (buildingName) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        buildingName: buildingName,
+        buildingName,
         timestamp: new Date().toISOString(),
       }),
     });
@@ -83,8 +92,10 @@ export const checkOut = async (buildingName) => {
       throw new Error('Failed to check out');
     }
     
-    const data = await response.json();
-    return data;
+    const result = await response.json();
+    // Notify all components that data has changed
+    notifyDataUpdate();
+    return result;
   } catch (error) {
     console.error('Error checking out:', error);
     return { success: true, message: 'Check-out recorded (offline mode)' };

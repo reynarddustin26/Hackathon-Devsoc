@@ -4,6 +4,109 @@ import './InteractiveCampusMap.css';
 
 function InteractiveCampusMap({ buildings }) {
   const [selectedBuilding, setSelectedBuilding] = useState(null);
+  const [qrModal, setQrModal] = useState({ open: false, loading: false, qr: null, error: null, building: null });
+  // Helper to get building id from name (for demo, use lowercase and remove spaces)
+  const getBuildingId = (name) => {
+    if (!name) return '';
+    // Try to match known ids for demo
+    const map = {
+      'Main Library': 'library',
+      'Mathews': 'mathews',
+      'Central Lecture Block': 'clb',
+      'Hilmer Building': 'hilmer',
+      'Science & Engineering': 'sci_eng',
+      'Business School': 'business_school',
+      'Law Building': 'law',
+      'Blockhouse': 'blockhouse',
+      'Tyree': 'tyree',
+      'Roundhouse': 'roundhouse',
+      'Squarehouse': 'squarehouse',
+      'Morven Brown': 'morven_brown',
+      'Quadrangle': 'quadrangle',
+      'Red Centre': 'red_centre',
+      'Scientia': 'scientia',
+    };
+    return map[name] || name.toLowerCase().replace(/[^a-z0-9]/g, '_');
+  };
+
+  // Fetch QR code for building
+  const fetchQrCode = async (building) => {
+    setQrModal({ open: true, loading: true, qr: null, error: null, building });
+    try {
+      const id = getBuildingId(building.name);
+      const response = await fetch(`https://hackathon-devsoc.onrender.com/api/buildings/${id}/qr`);
+      if (!response.ok) throw new Error('Failed to fetch QR code');
+      const data = await response.json();
+      setQrModal({ open: true, loading: false, qr: data.qr, error: null, building });
+    } catch (e) {
+      setQrModal({ open: true, loading: false, qr: null, error: 'Could not load QR code.', building });
+    }
+  };
+
+  // Mock building details (in real app, fetch from API)
+  const buildingDetails = {
+    'Main Library': {
+      openingHours: '8:00 AM - 10:00 PM',
+      facilities: ['Study Rooms', 'Computer Labs', 'Printing', 'Cafe'],
+    },
+    'Mathews': {
+      openingHours: '7:30 AM - 9:00 PM',
+      facilities: ['Lecture Theatres', 'Tutorial Rooms', 'Study Spaces'],
+    },
+    'Central Lecture Block': {
+      openingHours: '8:00 AM - 8:00 PM',
+      facilities: ['Lecture Theatres', 'Accessible Toilets'],
+    },
+    'Hilmer Building': {
+      openingHours: '8:00 AM - 7:00 PM',
+      facilities: ['Labs', 'Study Spaces', 'Cafe'],
+    },
+    'Science & Engineering': {
+      openingHours: '8:00 AM - 8:00 PM',
+      facilities: ['Labs', 'Lecture Theatres', 'Makerspace'],
+    },
+    'Business School': {
+      openingHours: '8:00 AM - 8:00 PM',
+      facilities: ['Lecture Theatres', 'Study Pods', 'Cafe'],
+    },
+    'Law Building': {
+      openingHours: '8:00 AM - 8:00 PM',
+      facilities: ['Lecture Theatres', 'Law Library', 'Study Rooms'],
+    },
+    'Blockhouse': {
+      openingHours: '8:00 AM - 6:00 PM',
+      facilities: ['Student Services', 'Meeting Rooms'],
+    },
+    'Tyree': {
+      openingHours: '8:00 AM - 8:00 PM',
+      facilities: ['Labs', 'Study Spaces'],
+    },
+    'Roundhouse': {
+      openingHours: '10:00 AM - 11:00 PM',
+      facilities: ['Event Space', 'Bar', 'Food Court'],
+    },
+    'Squarehouse': {
+      openingHours: '8:00 AM - 8:00 PM',
+      facilities: ['Food Outlets', 'Arc Office', 'Study Spaces'],
+    },
+    'Morven Brown': {
+      openingHours: '8:00 AM - 7:00 PM',
+      facilities: ['Lecture Theatres', 'Tutorial Rooms'],
+    },
+    'Quadrangle': {
+      openingHours: '8:00 AM - 8:00 PM',
+      facilities: ['Lecture Theatres', 'Study Spaces'],
+    },
+    'Red Centre': {
+      openingHours: '8:00 AM - 8:00 PM',
+      facilities: ['Labs', 'Studios', 'Gallery'],
+    },
+    'Scientia': {
+      openingHours: '8:00 AM - 8:00 PM',
+      facilities: ['Event Space', 'Lecture Theatre'],
+    },
+    // ...add more as needed
+  };
 
   const getOccupancyColor = (occupancy, capacity) => {
     const percentage = (occupancy / capacity) * 100;
@@ -324,6 +427,43 @@ function InteractiveCampusMap({ buildings }) {
             }}
           >
             {getOccupancyLabel(selectedBuilding.occupancy, selectedBuilding.capacity)}
+          </div>
+          <div className="detail-section">
+            <div className="detail-label">Opening Hours</div>
+            <div className="detail-value">
+              {buildingDetails[selectedBuilding.name]?.openingHours || '8:00 AM - 8:00 PM'}
+            </div>
+          </div>
+          <div className="detail-section">
+            <div className="detail-label">Facilities</div>
+            <ul className="detail-facilities">
+              {(buildingDetails[selectedBuilding.name]?.facilities || ['General Study Spaces']).map(facility => (
+                <li key={facility}>{facility}</li>
+              ))}
+            </ul>
+          </div>
+          <button className="qr-btn" onClick={() => fetchQrCode(selectedBuilding)}>
+            Show QR Code for Check-in/Out
+          </button>
+        </div>
+      )}
+
+      {/* QR Code Modal */}
+      {qrModal.open && (
+        <div className="qr-modal-overlay" onClick={() => setQrModal({ open: false, loading: false, qr: null, error: null, building: null })}>
+          <div className="qr-modal" onClick={e => e.stopPropagation()}>
+            <button className="close-panel-btn" onClick={() => setQrModal({ open: false, loading: false, qr: null, error: null, building: null })}>×</button>
+            <h3>QR Code for {qrModal.building?.name}</h3>
+            {qrModal.loading && <div style={{padding: '24px', textAlign: 'center'}}>Loading QR code...</div>}
+            {qrModal.error && <div style={{color: 'red', padding: '24px', textAlign: 'center'}}>{qrModal.error}</div>}
+            {qrModal.qr && (
+              <div style={{textAlign: 'center', padding: '16px'}}>
+                <img src={qrModal.qr} alt={`QR for ${qrModal.building?.name}`} style={{width: '220px', height: '220px', background: '#fff', borderRadius: '16px', boxShadow: '0 2px 12px #0002'}} />
+                <div style={{marginTop: '12px', color: '#6366f1', fontWeight: 600}}>
+                  Scan to check-in or check-out
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

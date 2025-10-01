@@ -172,14 +172,15 @@
   position: absolute;
   bottom: 20px;
   left: 20px;
-  background: white;
-  padding: 24px;
-  border-radius: 12px;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-  min-width: 280px;
+  background: linear-gradient(135deg, #f8fafc 60%, #e0e7ff 100%);
+  padding: 28px 28px 18px 28px;
+  border-radius: 18px;
+  border: 1.5px solid #6366f1;
+  box-shadow: 0 8px 32px rgba(99,102,241,0.13);
+  min-width: 320px;
   z-index: 30;
   animation: slideUp 0.3s ease;
+  font-family: 'Inter', 'Segoe UI', 'Roboto', 'Arial', sans-serif;
 }
 
 @keyframes slideUp {
@@ -213,11 +214,50 @@
 }
 
 .building-detail-panel h3 {
-  font-size: 18px;
-  font-weight: 600;
-  color: #1a1a1a;
-  margin-bottom: 16px;
+  font-size: 22px;
+  font-weight: 800;
+  color: #232946;
+  margin-bottom: 18px;
   padding-right: 20px;
+  letter-spacing: 0.5px;
+}
+.detail-section {
+  margin-top: 18px;
+}
+.detail-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #6366f1;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.detail-value {
+  font-size: 15px;
+  color: #232946;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.detail-facilities {
+  list-style: disc inside;
+  margin: 0;
+  padding-left: 12px;
+  color: #232946;
+  font-size: 15px;
+  font-weight: 500;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+}
+.detail-facilities li {
+  margin: 0;
+  padding: 0 6px 0 0;
+  border-radius: 6px;
+  background: #e0e7ff;
+  color: #232946;
+  font-size: 14px;
+  font-weight: 600;
+  display: inline-block;
 }
 
 .detail-occupancy {

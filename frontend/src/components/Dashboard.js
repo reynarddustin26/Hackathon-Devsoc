@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { fetchBuildings } from '../api';
+import { fetchBuildings, onBuildingsUpdate } from '../api';
 import CampusMap from './CampusMap';
 import Logo from './Logo';
 import InteractiveCampusMap from './InteractiveCampusMap';
@@ -13,16 +13,43 @@ function Dashboard() {
   const [buildings, setBuildings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [searchTerm, setSearchTerm] = useState(''); // Moved here!
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all'); // 'all', 'busiest', 'moderate', 'available'
 
   useEffect(() => {
+    let mounted = true;
+    
+    // Initial load
     loadBuildings();
-  
-    const interval = setInterval(() => {
-      loadBuildings();
-    }, 10000);
+    
+    // Set up aggressive polling when the component is active
+    const pollInterval = setInterval(async () => {
+      if (mounted) {
+        await loadBuildings();
+      }
+    }, 2000); // Poll every 2 seconds
+    
+    // Set up a longer interval for background updates
+    const backgroundInterval = setInterval(async () => {
+      if (mounted) {
+        await loadBuildings();
+      }
+    }, 30000); // Backup poll every 30 seconds
+    
+    // Subscribe to immediate updates from check-ins
+    const unsubscribe = onBuildingsUpdate((newData) => {
+      if (mounted && newData) {
+        setBuildings(newData);
+      }
+    });
 
-    return () => clearInterval(interval);
+    // Cleanup function
+    return () => {
+      mounted = false;
+      clearInterval(pollInterval);
+      clearInterval(backgroundInterval);
+      unsubscribe();
+    };
   }, []);
 
   const loadBuildings = async () => {
@@ -39,10 +66,27 @@ function Dashboard() {
     }
   };
 
-  // Filter buildings based on search
-  const filteredBuildings = buildings.filter(building =>
+
+  // Helper to get crowd level
+  const getCrowdLevel = (occupancy, capacity) => {
+    const ratio = occupancy / capacity;
+    if (ratio >= 0.8) return 'busiest';
+    if (ratio >= 0.5) return 'moderate';
+    return 'available';
+  };
+
+  // Filter buildings based on search and status
+  let filteredBuildings = buildings.filter(building =>
     building.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
+  if (statusFilter !== 'all') {
+    filteredBuildings = filteredBuildings.filter(b => getCrowdLevel(b.occupancy, b.capacity) === statusFilter);
+  }
+
+  // Leaderboard: top 3 busiest buildings
+  const topBusiest = [...buildings]
+    .sort((a, b) => (b.occupancy / b.capacity) - (a.occupancy / a.capacity))
+    .slice(0, 3);
 
   // Early return comes AFTER all hooks
   if (loading && buildings.length === 0) {
@@ -84,11 +128,28 @@ function Dashboard() {
       {error && <div className="error-message">{error}</div>}
     </header>
     
+
+    {/* Leaderboard for Top 3 Busiest Buildings */}
+    <div className="leaderboard">
+      <h2>🏆 Top 3 Busiest Buildings</h2>
+      <ol>
+        {topBusiest.map((b, idx) => (
+          <li key={b.id} style={{ fontWeight: idx === 0 ? 'bold' : 'normal' }}>
+            {b.name} ({b.occupancy}/{b.capacity})
+            <span style={{ color: getCrowdLevel(b.occupancy, b.capacity) === 'busiest' ? '#ef4444' : getCrowdLevel(b.occupancy, b.capacity) === 'moderate' ? '#f59e0b' : '#10b981', marginLeft: 8 }}>
+              {getCrowdLevel(b.occupancy, b.capacity).charAt(0).toUpperCase() + getCrowdLevel(b.occupancy, b.capacity).slice(1)}
+            </span>
+          </li>
+        ))}
+      </ol>
+    </div>
+
     <div className="dashboard-actions">
       <button className="scan-button-main" onClick={() => navigate('/scan')}>
         📱 Scan QR Code
       </button>
     </div>
+
 
     <div className="search-container">
       <input
@@ -98,6 +159,17 @@ function Dashboard() {
         onChange={(e) => setSearchTerm(e.target.value)}
         className="search-input"
       />
+      <select
+        value={statusFilter}
+        onChange={e => setStatusFilter(e.target.value)}
+        className="status-filter"
+        style={{ marginLeft: 12 }}
+      >
+        <option value="all">All</option>
+        <option value="busiest">Busiest</option>
+        <option value="moderate">Moderate</option>
+        <option value="available">Available</option>
+      </select>
     </div>
 
     <InteractiveCampusMap buildings={filteredBuildings} />
