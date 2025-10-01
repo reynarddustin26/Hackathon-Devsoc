@@ -1,17 +1,24 @@
 // backend/utils/mongoClient.js
 const { MongoClient } = require('mongodb');
-require('dotenv').config();
 
-const uri = process.env.MONGODB_URI;
-const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
-
+let client;
 let db;
 
 async function connectDB() {
-  if (!db) {
-    await client.connect();
-    db = client.db('CrowdTracker'); // Use your DB name
+  if (db) return db;
+
+  if (!process.env.MONGO_URI) {
+    throw new Error("❌ MONGO_URI is not set in .env");
   }
+
+  client = new MongoClient(process.env.MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  });
+
+  await client.connect();
+  db = client.db(process.env.DB_NAME || 'crowdtracker'); // fallback name
+  console.log("✅ Connected to MongoDB Atlas");
   return db;
 }
 
