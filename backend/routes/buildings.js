@@ -6,7 +6,7 @@ const connectDB = require('../utils/mongoClient');
 // 🔎 Helper: Find building by id OR name
 async function findBuilding(db, identifier) {
   if (!identifier) return null;
-  return db.collection('buildings').findOne({
+  return db.collection('Buildings').findOne({
     $or: [
       { id: identifier.toLowerCase() },
       { name: { $regex: new RegExp(`^${identifier}$`, 'i') } }
@@ -18,7 +18,7 @@ async function findBuilding(db, identifier) {
 router.get('/', async (req, res) => {
   try {
     const db = await connectDB();
-    const buildings = await db.collection('buildings').find({}).toArray();
+    const buildings = await db.collection('Buildings').find({}).toArray();
     res.json(buildings);
   } catch (err) {
     console.error('❌ Error fetching buildings:', err);
@@ -39,12 +39,12 @@ router.post('/report', async (req, res) => {
 
     const newCrowdedness = (building.crowdedness + crowdedness) / 2;
 
-    await db.collection('buildings').updateOne(
+    await db.collection('Buildings').updateOne(
       { _id: building._id },
       { $set: { crowdedness: newCrowdedness } }
     );
 
-    const updated = await db.collection('buildings').findOne({ _id: building._id });
+    const updated = await db.collection('Buildings').findOne({ _id: building._id });
     res.json({ message: 'Report added successfully', building: updated });
   } catch (err) {
     console.error('❌ Error reporting crowdedness:', err);
@@ -63,12 +63,12 @@ router.post('/checkin', async (req, res) => {
       return res.status(404).json({ error: 'Building not found' });
     }
 
-    await db.collection('buildings').updateOne(
+    await db.collection('Buildings').updateOne(
       { _id: building._id },
       { $inc: { count: 1 } }
     );
 
-    const updated = await db.collection('buildings').findOne({ _id: building._id });
+    const updated = await db.collection('Buildings').findOne({ _id: building._id });
     res.json({ message: 'Checked in successfully', building: updated });
   } catch (err) {
     console.error('❌ Error in checkin:', err);
@@ -88,13 +88,13 @@ router.post('/checkout', async (req, res) => {
     }
 
     if (building.count > 0) {
-      await db.collection('buildings').updateOne(
+      await db.collection('Buildings').updateOne(
         { _id: building._id },
         { $inc: { count: -1 } }
       );
     }
 
-    const updated = await db.collection('buildings').findOne({ _id: building._id });
+    const updated = await db.collection('Buildings').findOne({ _id: building._id });
     res.json({ message: 'Checked out successfully', building: updated });
   } catch (err) {
     console.error('❌ Error in checkout:', err);
@@ -140,12 +140,12 @@ router.post('/:id/review', async (req, res) => {
       ? [...building.reviews, { review, crowdedness, timestamp: new Date() }]
       : [{ review, crowdedness, timestamp: new Date() }];
 
-    await db.collection('buildings').updateOne(
+    await db.collection('Buildings').updateOne(
       { _id: building._id },
       { $set: { crowdedness: newCrowdedness, reviews: newReviews } }
     );
 
-    const updated = await db.collection('buildings').findOne({ _id: building._id });
+    const updated = await db.collection('Buildings').findOne({ _id: building._id });
     res.json({ message: 'Review submitted successfully', building: updated });
   } catch (err) {
     console.error('❌ Error submitting review:', err);

@@ -1,11 +1,18 @@
 const { MongoClient } = require("mongodb");
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 
 let db;
 
 async function connectDB() {
   if (db) return db;  // reuse connection
 
-  const client = new MongoClient(process.env.MONGODB_URI);
+  const mongoUri = process.env.MONGODB_URI;
+  if (!mongoUri) {
+    throw new Error('MONGODB_URI environment variable is not set');
+  }
+
+  const client = new MongoClient(mongoUri);
   await client.connect();
   console.log("✅ MongoDB connected");
 
