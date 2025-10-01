@@ -5,7 +5,7 @@ require('dotenv').config();
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({ origin: ['http://localhost:4000', 'https://hackathon-dev-frontend.onrender.com'], methods: ['GET', 'POST'], credentials: true}));
 app.use(express.json());
 
 // Routes (make sure buildings.js exists inside backend/routes/)
