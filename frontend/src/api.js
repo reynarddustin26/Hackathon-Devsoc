@@ -1,4 +1,5 @@
-const API_BASE_URL = 'https://hackathon-devsoc.onrender.com/api/buildings'; 
+// Use environment variable for API URL, fallback to localhost during development
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000/api/buildings';
 
 // Keep track of the last data we received
 let lastData = null;
