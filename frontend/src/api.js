@@ -1,5 +1,5 @@
 // Use environment variable for API URL, fallback to production URL
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://hackathon-devsoc.onrender.com/api/buildings';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://hackathon-devsoc.onrender.com';
 
 // Endpoints
 
