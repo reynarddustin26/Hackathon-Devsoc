@@ -1,6 +1,3 @@
-// Import default data
-import { defaultBuildingsData } from './data/defaultBuildings';
-
 // Use environment variable for API URL, fallback to production URL
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://hackathon-devsoc.onrender.com';
 
@@ -36,6 +33,9 @@ const notifyDataUpdate = (newData) => {
     dataUpdateCallbacks.forEach(callback => callback(newData));
   }
 };
+
+// Import default data
+import { defaultBuildingsData } from './data/defaultBuildings';
 
 // Fetch all buildings with occupancy data
 export const fetchBuildings = async () => {
@@ -81,7 +81,7 @@ export const fetchBuildings = async () => {
 // Log a check-in
 export const checkIn = async (buildingName) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/checkin`, {
+    const response = await fetch(getUrl(ENDPOINTS.checkin), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -97,8 +97,8 @@ export const checkIn = async (buildingName) => {
     }
     
     const result = await response.json();
-    // Notify all components that data has changed
-    notifyDataUpdate();
+    // Fetch latest building data to update UI
+    await fetchBuildings();
     return result;
   } catch (error) {
     console.error('Error checking in:', error);
@@ -109,7 +109,7 @@ export const checkIn = async (buildingName) => {
 // Log a checkout
 export const checkOut = async (buildingName) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/checkout`, {
+    const response = await fetch(getUrl(ENDPOINTS.checkout), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -125,8 +125,8 @@ export const checkOut = async (buildingName) => {
     }
     
     const result = await response.json();
-    // Notify all components that data has changed
-    notifyDataUpdate();
+    // Fetch latest building data to update UI
+    await fetchBuildings();
     return result;
   } catch (error) {
     console.error('Error checking out:', error);

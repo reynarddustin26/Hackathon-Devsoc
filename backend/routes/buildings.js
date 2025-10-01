@@ -46,7 +46,8 @@ router.post('/report', (req, res) => {
 
 // 🟢 POST /api/buildings/checkin → increment occupancy count
 router.post('/checkin', (req, res) => {
-  const { buildingId } = req.body;
+  console.log('📥 Checkin request body:', req.body);
+  const { buildingName, buildingId } = req.body;
   const building = findBuilding(buildingId);
 
   if (!building) {
