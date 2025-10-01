@@ -1,5 +1,8 @@
-// Use environment variable for API URL, fallback to localhost during development
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+// Use environment variable for API URL, fallback to production URL
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://hackathon-devsoc.onrender.com/api/buildings';
+
+// Debug log the API URL being used
+console.log('Using API URL:', API_BASE_URL);
 
 // Keep track of the last data we received
 let lastData = null;
@@ -27,20 +30,27 @@ const notifyDataUpdate = (newData) => {
 // Fetch all buildings with occupancy data
 export const fetchBuildings = async () => {
   try {
-    console.log('Fetching building data...'); // Debug log
     const response = await fetch(API_BASE_URL);
     if (!response.ok) {
-      throw new Error('Failed to fetch buildings');
+      console.error('Server returned error:', response.status, response.statusText);
+      throw new Error(`Failed to fetch buildings: ${response.status}`);
     }
     const data = await response.json();
     
-    // Log the received data for debugging
-    console.log('Received building data:', data);
+    // Only log if data has changed
+    if (JSON.stringify(data) !== JSON.stringify(lastData)) {
+      console.log('Buildings data updated:', data);
+    }
+    
+    if (!Array.isArray(data)) {
+      console.error('Received invalid data format:', data);
+      return lastData || [];
+    }
     
     // Notify subscribers if data has changed
     notifyDataUpdate(data);
     
-    return data; // Backend provides all required data
+    return data;
   } catch (error) {
     console.error('Error fetching buildings:', error);
     return lastData || []; // Return last known data if available, empty array as fallback

@@ -22,19 +22,12 @@ function Dashboard() {
     // Initial load
     loadBuildings();
     
-    // Set up aggressive polling when the component is active
+    // Set up polling at a reasonable interval
     const pollInterval = setInterval(async () => {
       if (mounted) {
         await loadBuildings();
       }
-    }, 2000); // Poll every 2 seconds
-    
-    // Set up a longer interval for background updates
-    const backgroundInterval = setInterval(async () => {
-      if (mounted) {
-        await loadBuildings();
-      }
-    }, 30000); // Backup poll every 30 seconds
+    }, 10000); // Poll every 10 seconds
     
     // Subscribe to immediate updates from check-ins
     const unsubscribe = onBuildingsUpdate((newData) => {
@@ -54,13 +47,21 @@ function Dashboard() {
 
   const loadBuildings = async () => {
     try {
-      setLoading(true);
-      const data = await fetchBuildings();
-      setBuildings(data);
-      setError(null);
+      if (!loading) {  // Only load if not already loading
+        setLoading(true);
+        const data = await fetchBuildings();
+        if (Array.isArray(data) && data.length > 0) {
+          setBuildings(data);
+          setError(null);
+        } else if (!buildings.length) {  // Only set error if we don't have any existing data
+          setError('No buildings data available');
+        }
+      }
     } catch (err) {
-      setError('Failed to load buildings');
-      console.error(err);
+      console.error('Error loading buildings:', err);
+      if (!buildings.length) {  // Only set error if we don't have any existing data
+        setError('Failed to load buildings data');
+      }
     } finally {
       setLoading(false);
     }
