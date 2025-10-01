@@ -54,7 +54,9 @@ function Dashboard() {
       
       if (Array.isArray(data) && data.length > 0) {
         console.log('✅ Setting buildings:', data.length);
-        setBuildings(data);
+        // Validate and fill in missing fields for each building
+        const validatedData = data.map(validateBuilding);
+        setBuildings(validatedData);
         setError(null);
       } else {
         console.log('⚠️ No buildings in data');
@@ -71,11 +73,23 @@ function Dashboard() {
 
   // Helper to get crowd level
   const getCrowdLevel = (occupancy, capacity) => {
-    const ratio = occupancy / capacity;
+    const ratio = (occupancy || 0) / (capacity || 100); // Use defaults if values are missing
     if (ratio >= 0.8) return 'busiest';
     if (ratio >= 0.5) return 'moderate';
     return 'available';
   };
+
+  // Helper to ensure building data has all required fields
+  const validateBuilding = (building) => ({
+    ...building,
+    occupancy: building.occupancy || 0,
+    capacity: building.capacity || 100,
+    crowdedness: building.crowdedness || (building.occupancy / building.capacity * 100) || 0,
+    openingHours: building.openingHours || '9:00 AM - 5:00 PM',
+    facilities: building.facilities || [],
+    reviews: building.reviews || [],
+    location: building.location || { x: 50, y: 50 }
+  });
 
   // Filter buildings based on search and status
   let filteredBuildings = buildings.filter(building =>
