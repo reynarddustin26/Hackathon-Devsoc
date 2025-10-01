@@ -1,24 +1,21 @@
+// filepath: backend/utils/mongoClient.js
 const { MongoClient } = require('mongodb');
+require('dotenv').config();
 
-let client;
-let db;
+const uri = process.env.MONGODB_URI;
+const dbName = process.env.DB_NAME;
+
+let cachedClient = null;
+let cachedDb = null;
 
 async function connectDB() {
-  if (db) return db;
-
-  const uri = process.env.MONGO_URI;
-  if (!uri) {
-    throw new Error("❌ MONGO_URI not found. Did you set it in Render?");
+  if (cachedClient && cachedDb) {
+    return cachedDb;
   }
-
-  client = new MongoClient(uri, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  });
-
-  await client.connect();
-  db = client.db(process.env.DB_NAME || 'Campus');
-  console.log("✅ Connected to MongoDB Atlas");
+  const client = await MongoClient.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+  const db = client.db(dbName);
+  cachedClient = client;
+  cachedDb = db;
   return db;
 }
 
