@@ -46,21 +46,23 @@ function Dashboard() {
 
   const loadBuildings = async () => {
     try {
-      if (!loading) {  // Only load if not already loading
-        setLoading(true);
-        const data = await fetchBuildings();
-        if (Array.isArray(data) && data.length > 0) {
-          setBuildings(data);
-          setError(null);
-        } else if (!buildings.length) {  // Only set error if we don't have any existing data
-          setError('No buildings data available');
-        }
+      setLoading(true);
+      console.log('🔄 Loading buildings...');
+      
+      const data = await fetchBuildings();
+      console.log('📥 Received data:', data);
+      
+      if (Array.isArray(data) && data.length > 0) {
+        console.log('✅ Setting buildings:', data.length);
+        setBuildings(data);
+        setError(null);
+      } else {
+        console.log('⚠️ No buildings in data');
+        setError('No buildings data available');
       }
     } catch (err) {
-      console.error('Error loading buildings:', err);
-      if (!buildings.length) {  // Only set error if we don't have any existing data
-        setError('Failed to load buildings data');
-      }
+      console.error('❌ Error loading buildings:', err);
+      setError('Failed to load buildings data');
     } finally {
       setLoading(false);
     }

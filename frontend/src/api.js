@@ -1,8 +1,20 @@
 // Use environment variable for API URL, fallback to production URL
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://hackathon-devsoc.onrender.com/api/buildings';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://hackathon-devsoc.onrender.com';
 
-// Debug log the API URL being used
-console.log('Using API URL:', API_BASE_URL);
+// Endpoints
+const ENDPOINTS = {
+  buildings: '/api/buildings',
+  checkin: '/api/buildings/checkin',
+  checkout: '/api/buildings/checkout'
+};
+
+// Helper function to construct full URLs
+const getUrl = (endpoint) => `${API_BASE_URL}${endpoint}`;
+
+console.log('🔧 API Configuration:', {
+  baseUrl: API_BASE_URL,
+  buildingsEndpoint: getUrl(ENDPOINTS.buildings)
+});
 
 // Keep track of the last data we received
 let lastData = null;
@@ -27,28 +39,81 @@ const notifyDataUpdate = (newData) => {
   }
 };
 
+// Import default data
+import { defaultBuildingsData } from './data/defaultBuildings';
+
 // Fetch all buildings with occupancy data
 export const fetchBuildings = async () => {
   try {
-    const response = await fetch(API_BASE_URL);
+    const url = getUrl(ENDPOINTS.buildings);
+    console.log('🔍 Fetching from:', url);
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      mode: 'cors'
+    });
+
+    console.log('📡 Response status:', response.status);
+
+    // If we get a 404 or any error, use default data
     if (!response.ok) {
-      console.error('Server returned error:', response.status, response.statusText);
+      console.log('⚠️ API not ready, using default data');
+      return defaultBuildingsData;
+    }
+
+    try {
+      const data = await response.json();
+      if (Array.isArray(data) && data.length > 0) {
+        console.log('✅ Got real data from API:', data.length, 'buildings');
+        return data;
+      } else {
+        console.log('⚠️ Invalid data from API, using defaults');
+        return defaultBuildingsData;
+      }
+    } catch (e) {
+      console.log('⚠️ Failed to parse API response, using defaults');
+      return defaultBuildingsData;
+      },
+      mode: 'cors',
+    });
+    
+    console.log('📡 Response status:', response.status);
+    console.log('📡 Response headers:', Object.fromEntries(response.headers));
+    const responseText = await response.text();
+    console.log('📄 Raw response:', responseText);
+    
+    if (!response.ok) {
+      console.error('❌ Server returned error:', response.status, response.statusText);
       throw new Error(`Failed to fetch buildings: ${response.status}`);
     }
-    const data = await response.json();
     
-    // Only log if data has changed
-    if (JSON.stringify(data) !== JSON.stringify(lastData)) {
-      console.log('Buildings data updated:', data);
-    }
-    
-    if (!Array.isArray(data)) {
-      console.error('Received invalid data format:', data);
+    // Try to parse the response as JSON
+    let data;
+    try {
+      data = JSON.parse(responseText);
+      console.log('✅ Parsed data:', data);
+    } catch (e) {
+      console.error('❌ Failed to parse JSON:', e);
       return lastData || [];
     }
     
-    // Notify subscribers if data has changed
-    notifyDataUpdate(data);
+    if (!Array.isArray(data)) {
+      console.error('❌ Data is not an array:', data);
+      return lastData || [];
+    }
+    
+    // Only update if we actually got buildings
+    if (data.length > 0) {
+      lastData = data;
+      notifyDataUpdate(data);
+      console.log('🏢 Returned buildings:', data.length);
+    } else {
+      console.log('⚠️ No buildings in response');
+    }
     
     return data;
   } catch (error) {
