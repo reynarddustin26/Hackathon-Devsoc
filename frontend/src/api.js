@@ -1,3 +1,6 @@
+// Import default data
+import { defaultBuildingsData } from './data/defaultBuildings';
+
 // Use environment variable for API URL, fallback to production URL
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://hackathon-devsoc.onrender.com';
 
@@ -33,9 +36,6 @@ const notifyDataUpdate = (newData) => {
     dataUpdateCallbacks.forEach(callback => callback(newData));
   }
 };
-
-// Import default data
-import { defaultBuildingsData } from './data/defaultBuildings';
 
 // Fetch all buildings with occupancy data
 export const fetchBuildings = async () => {
