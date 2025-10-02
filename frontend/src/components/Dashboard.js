@@ -153,9 +153,9 @@ function Dashboard() {
         <span className="logo-text">UniFlow</span>
       </div>
       <ul className="navbar-links">
-        <li><a href="#dashboard">Dashboard</a></li>
-        <li><a href="#map">Map</a></li>
-        <li><a href="#about">About</a></li>
+        <li><a href="#dashboard" onClick={e => {e.preventDefault(); document.getElementById('dashboard-header').scrollIntoView({behavior: 'smooth'});}}>Dashboard</a></li>
+        <li><a href="#map" onClick={e => {e.preventDefault(); document.getElementById('campus-map-section').scrollIntoView({behavior: 'smooth'});}}>Map</a></li>
+        <li><a href="#about" onClick={e => {e.preventDefault(); document.getElementById('about-section').scrollIntoView({behavior: 'smooth'});}}>About</a></li>
       </ul>
     </nav>
     {/* Decorative animated shapes */}
@@ -164,10 +164,12 @@ function Dashboard() {
       <div className="circle2"></div>
       <div className="triangle"></div>
     </div>
-    <header className="dashboard-header">
+  <header className="dashboard-header" id="dashboard-header">
       <div className="header-top">
-        <Logo />
-        <div className="header-stats">
+        <div className="header-logo-block header-logo-block-center">
+          <span className="logo-text-uniauto">UniAuto</span>
+        </div>
+        <div className="header-stats small-stats">
           <div className="stat-card">
             <div className="stat-number">{buildings.length}</div>
             <div className="stat-label">Buildings</div>
@@ -188,13 +190,20 @@ function Dashboard() {
       </div>
       <div className="header-bottom">
         <h1>UniFlow</h1>
-        <p>Real-time campus crowd insights</p>
+        <p className="subtitle-center">Real-time campus crowd insights</p>
       </div>
       {error && <div className="error-message">{error}</div>}
     </header>
     
 
-    {/* Leaderboard for Top 3 Busiest Buildings */}
+  {/* Campus Map Section Anchor */}
+  <div id="campus-map-section"></div>
+  {/* Leaderboard for Top 3 Busiest Buildings */}
+    {/* About Section */}
+    <section id="about-section" className="about-section">
+      <h2>About UniFlow</h2>
+      <p>UniFlow is a modern campus occupancy and crowd monitoring dashboard, designed to help students and staff find the best spaces in real time. Built with love by <b>Christian</b> and <b>Reynard</b>.</p>
+    </section>
     <div className="leaderboard">
       <h2>🏆 Top 3 Busiest Buildings</h2>
       <ol>
