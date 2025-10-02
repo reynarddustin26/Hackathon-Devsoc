@@ -149,8 +149,7 @@ function Dashboard() {
     {/* Navigation Bar */}
     <nav className="navbar">
       <div className="navbar-logo">
-        <span className="logo-icon">🌀</span>
-        <span className="logo-text">UniFlow</span>
+        <img src="/logo.png" alt="UniFlow Logo" className="logo-image" />
       </div>
       <ul className="navbar-links">
         <li><a href="#dashboard" onClick={e => {e.preventDefault(); document.getElementById('dashboard-header').scrollIntoView({behavior: 'smooth'});}}>Dashboard</a></li>

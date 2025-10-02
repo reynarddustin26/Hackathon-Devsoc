@@ -93,11 +93,13 @@
 .navbar-logo {
   display: flex;
   align-items: center;
-  font-family: 'Poppins', 'Inter', 'Segoe UI', 'Roboto', 'Arial', sans-serif;
-  font-weight: 900;
-  font-size: 2rem;
-  color: #6366f1;
-  letter-spacing: 2px;
+}
+
+.logo-image {
+  height: 45px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 8px rgba(129, 140, 248, 0.3));
 }
 .logo-icon {
   font-size: 2.2rem;
@@ -340,7 +342,7 @@ header p {
   margin-bottom: 10px;
   flex-wrap: wrap;
   gap: 20px;
-  padding-right: 110px;
+  padding-right: 120px;
 }
 
 .header-stats {
