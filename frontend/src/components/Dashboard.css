@@ -342,7 +342,7 @@ header p {
   margin-bottom: 10px;
   flex-wrap: wrap;
   gap: 20px;
-  padding-right: 200px;
+  padding-right: 60px;
 }
 
 .header-stats {
@@ -354,6 +354,7 @@ header p {
   box-shadow: none;
   justify-content: center;
   align-items: center;
+  margin-right: -100px;
 }
 
 .stat-card {
