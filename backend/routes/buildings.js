@@ -74,11 +74,21 @@ router.post('/checkin', async (req, res) => {
     res.json({ message: 'Checked in successfully', building: updated });
   } catch (err) {
     console.error('❌ Error in checkin:', err);
-    res.status(500).json({ error: 'Failed to check in' });
+    res.status(500).json({ error: 'Failed to check in' }
+router.post('/checkin', (req, res) => {
+  console.log('📥 Checkin request body:', req.body);
+  const { buildingName } = req.body;
+  const building = findBuilding(buildingName);
+  
+  console.log('🏢 Found building:', building ? building.name : 'Not found');
+
+  if (!building) {
+    return res.status(404).json({ error: 'Building not found' }
   }
 });
 
 // 🟢 POST /api/buildings/checkout → decrement occupancy count
+
 router.post('/checkout', async (req, res) => {
   try {
     const { buildingId } = req.body;
@@ -103,6 +113,15 @@ router.post('/checkout', async (req, res) => {
   } catch (err) {
     console.error('❌ Error in checkout:', err);
     res.status(500).json({ error: 'Failed to check out' });
+
+router.post('/checkout', (req, res) => {
+  const { buildingName } = req.body;
+  const building = findBuilding(buildingName);
+  
+  console.log('🏢 Found building:', building ? building.name : 'Not found');
+
+  if (!building) {
+    return res.status(404).json({ error: 'Building not found' });
   }
 });
 

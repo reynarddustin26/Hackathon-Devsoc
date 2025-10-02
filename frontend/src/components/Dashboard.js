@@ -14,53 +14,88 @@ function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all'); // 'all', 'busiest', 'moderate', 'available'
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [lastUpdate, setLastUpdate] = useState(new Date());
+  const [forceUpdate, setForceUpdate] = useState(0);  // Used to force re-fetch // 'all', 'busiest', 'moderate', 'available'
 
+
+  // Refresh data when page becomes visible again
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        console.log('📥 Page visible, refreshing data...');
+        loadBuildings(true);  // Force refresh when page becomes visible
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
+
+  // Main data loading and polling effect
   useEffect(() => {
     let mounted = true;
     
     // Initial load
-    loadBuildings();
+    loadBuildings(true);  // Force fresh data on mount
     
-    // Set up aggressive polling when the component is active
+    // Set up more frequent polling
     const pollInterval = setInterval(async () => {
       if (mounted) {
+        console.log('🔄 Polling for building updates...');
         await loadBuildings();
+        setLastUpdate(new Date());  // Update timestamp
       }
-    }, 2000); // Poll every 2 seconds
+    }, 3000); // Poll every 3 seconds for more responsive updates
     
-    // Set up a longer interval for background updates
-    const backgroundInterval = setInterval(async () => {
-      if (mounted) {
-        await loadBuildings();
-      }
-    }, 30000); // Backup poll every 30 seconds
-    
-    // Subscribe to immediate updates from check-ins
+    // Subscribe to immediate updates from check-ins/outs
     const unsubscribe = onBuildingsUpdate((newData) => {
-      if (mounted && newData) {
-        setBuildings(newData);
+      if (mounted) {
+        if (newData) {
+          console.log('📡 Received real-time update:', newData.length, 'buildings');
+          setBuildings(newData);
+        } else {
+          console.warn('⚠️ Received empty update');
+        }
       }
     });
 
     // Cleanup function
     return () => {
+      console.log('🗑 Cleaning up Dashboard subscriptions');
       mounted = false;
       clearInterval(pollInterval);
-      clearInterval(backgroundInterval);
       unsubscribe();
     };
   }, []);
 
-  const loadBuildings = async () => {
+  const handleRefresh = async () => {
+    console.log('🔄 Manual refresh requested');
+    await loadBuildings();
+    setLastUpdate(new Date());
+  };
+
+  const loadBuildings = async (forceRefresh = false) => {
     try {
       setLoading(true);
+      console.log('🔄 Loading buildings...', forceRefresh ? '(forced)' : '');
+      
       const data = await fetchBuildings();
-      setBuildings(data);
-      setError(null);
+      console.log('📥 Received data:', data);
+      
+      if (Array.isArray(data) && data.length > 0) {
+        console.log('✅ Setting buildings:', data.length);
+        // Validate and fill in missing fields for each building
+        const validatedData = data.map(validateBuilding);
+        setBuildings(validatedData);
+        setError(null);
+      } else {
+        console.log('⚠️ No buildings in data');
+        setError('No buildings data available');
+      }
     } catch (err) {
-      setError('Failed to load buildings');
-      console.error(err);
+      console.error('❌ Error loading buildings:', err);
+      setError('Failed to load buildings data');
     } finally {
       setLoading(false);
     }
@@ -69,11 +104,23 @@ function Dashboard() {
 
   // Helper to get crowd level
   const getCrowdLevel = (occupancy, capacity) => {
-    const ratio = occupancy / capacity;
+    const ratio = (occupancy || 0) / (capacity || 100); // Use defaults if values are missing
     if (ratio >= 0.8) return 'busiest';
     if (ratio >= 0.5) return 'moderate';
     return 'available';
   };
+
+  // Helper to ensure building data has all required fields
+  const validateBuilding = (building) => ({
+    ...building,
+    occupancy: building.occupancy || 0,
+    capacity: building.capacity || 100,
+    crowdedness: building.crowdedness || (building.occupancy / building.capacity * 100) || 0,
+    openingHours: building.openingHours || '9:00 AM - 5:00 PM',
+    facilities: building.facilities || [],
+    reviews: building.reviews || [],
+    location: building.location || { x: 50, y: 50 }
+  });
 
   // Filter buildings based on search and status
   let filteredBuildings = buildings.filter(building =>
@@ -99,9 +146,25 @@ function Dashboard() {
 
   return (
   <div className="dashboard">
-    <header className="dashboard-header">
+    {/* Navigation Bar */}
+    <nav className="navbar">
+      <div className="navbar-logo">
+        <img src="/logo.png" alt="UniFlow Logo" className="logo-image" />
+      </div>
+      <ul className="navbar-links">
+        <li><a href="#dashboard" onClick={e => {e.preventDefault(); document.getElementById('dashboard-header').scrollIntoView({behavior: 'smooth'});}}>Dashboard</a></li>
+        <li><a href="#map" onClick={e => {e.preventDefault(); document.getElementById('campus-map-section').scrollIntoView({behavior: 'smooth'});}}>Map</a></li>
+        <li><a href="#about" onClick={e => {e.preventDefault(); document.getElementById('about-section').scrollIntoView({behavior: 'smooth'});}}>About</a></li>
+      </ul>
+    </nav>
+    {/* Decorative animated shapes */}
+    <div className="dashboard-decoration">
+      <div className="circle1"></div>
+      <div className="circle2"></div>
+      <div className="triangle"></div>
+    </div>
+  <header className="dashboard-header" id="dashboard-header">
       <div className="header-top">
-        <Logo />
         <div className="header-stats">
           <div className="stat-card">
             <div className="stat-number">{buildings.length}</div>
@@ -122,14 +185,13 @@ function Dashboard() {
         </div>
       </div>
       <div className="header-bottom">
-        <h1>Campus Occupancy Monitor</h1>
-        <p>Real-time crowd tracking across UNSW Kensington</p>
+        <h1>UniFlow</h1>
+        <p className="subtitle-center">Real-time campus crowd insights</p>
       </div>
       {error && <div className="error-message">{error}</div>}
     </header>
     
-
-    {/* Leaderboard for Top 3 Busiest Buildings */}
+  {/* Leaderboard for Top 3 Busiest Buildings */}
     <div className="leaderboard">
       <h2>🏆 Top 3 Busiest Buildings</h2>
       <ol>
@@ -172,7 +234,15 @@ function Dashboard() {
       </select>
     </div>
 
+  {/* Campus Map Section Anchor */}
+  <div id="campus-map-section"></div>
     <InteractiveCampusMap buildings={filteredBuildings} />
+    
+    {/* About Section */}
+    <section id="about-section" className="about-section">
+      <h2>About UniFlow</h2>
+      <p>UniFlow is a modern campus occupancy and crowd monitoring dashboard, designed to help students and staff find the best spaces in real time. Built with love by <b>Christian</b> and <b>Reynard</b>.</p>
+    </section>
     
     <div className="last-updated">
       Last updated: {new Date().toLocaleTimeString()}
