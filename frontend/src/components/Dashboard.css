@@ -96,7 +96,7 @@
 }
 
 .logo-image {
-  height: 75px;
+  height: 165px;
   width: auto;
   object-fit: contain;
   filter: drop-shadow(0 2px 8px rgba(129, 140, 248, 0.3));
@@ -342,7 +342,7 @@ header p {
   margin-bottom: 10px;
   flex-wrap: wrap;
   gap: 20px;
-  padding-right: 145px;
+  padding-right: 200px;
 }
 
 .header-stats {
