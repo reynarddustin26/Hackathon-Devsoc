@@ -146,6 +146,18 @@ function Dashboard() {
 
   return (
   <div className="dashboard">
+    {/* Navigation Bar */}
+    <nav className="navbar">
+      <div className="navbar-logo">
+        <span className="logo-icon">🌀</span>
+        <span className="logo-text">UniFlow</span>
+      </div>
+      <ul className="navbar-links">
+        <li><a href="#dashboard">Dashboard</a></li>
+        <li><a href="#map">Map</a></li>
+        <li><a href="#about">About</a></li>
+      </ul>
+    </nav>
     {/* Decorative animated shapes */}
     <div className="dashboard-decoration">
       <div className="circle1"></div>
@@ -175,8 +187,8 @@ function Dashboard() {
         </div>
       </div>
       <div className="header-bottom">
-        <h1>Campus Occupancy Monitor</h1>
-        <p>Real-time crowd tracking across UNSW Kensington</p>
+        <h1>UniFlow</h1>
+        <p>Real-time campus crowd insights</p>
       </div>
       {error && <div className="error-message">{error}</div>}
     </header>
