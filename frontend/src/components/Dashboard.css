@@ -96,7 +96,7 @@
 }
 
 .logo-image {
-  height: 45px;
+  height: 75px;
   width: auto;
   object-fit: contain;
   filter: drop-shadow(0 2px 8px rgba(129, 140, 248, 0.3));
@@ -342,7 +342,7 @@ header p {
   margin-bottom: 10px;
   flex-wrap: wrap;
   gap: 20px;
-  padding-right: 120px;
+  padding-right: 145px;
 }
 
 .header-stats {
@@ -359,32 +359,33 @@ header p {
 .stat-card {
   text-align: center;
   min-width: 90px;
-  background: #232946;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.9) 0%, rgba(139, 92, 246, 0.9) 100%);
   border-radius: 14px;
-  box-shadow: 0 2px 12px rgba(99,102,241,0.13);
+  box-shadow: 0 2px 12px rgba(99,102,241,0.25);
   padding: 14px 20px;
-  border: 1.5px solid #353a5e;
-  transition: box-shadow 0.2s, border-color 0.2s;
+  border: 1.5px solid rgba(251, 207, 232, 0.5);
+  transition: box-shadow 0.2s, border-color 0.2s, transform 0.2s;
 }
 .stat-card:hover {
-  box-shadow: 0 8px 32px rgba(99,102,241,0.19);
-  border-color: #6366f1;
+  box-shadow: 0 8px 32px rgba(139,92,246,0.35);
+  border-color: #fbcfe8;
+  transform: translateY(-2px);
 }
 
 .stat-number {
   font-size: 36px;
   font-weight: 900;
-  color: #a5b4fc;
+  color: #ffffff;
   line-height: 1;
   margin-bottom: 4px;
   letter-spacing: 1px;
-  text-shadow: 0 2px 8px #23294644;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .stat-label {
   font-size: 13px;
   font-weight: 700;
-  color: #fbcfe8;
+  color: #ffffff;
   text-transform: uppercase;
   letter-spacing: 0.7px;
 }
