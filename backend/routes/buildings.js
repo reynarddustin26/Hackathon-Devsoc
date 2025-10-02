@@ -65,7 +65,9 @@ router.post('/checkin', async (req, res) => {
 
     await db.collection('Buildings').updateOne(
       { _id: building._id },
-      { $inc: { count: 1 } }
+      { 
+        $inc: { count: 1, occupancy: 1 }
+      }
     );
 
     const updated = await db.collection('Buildings').findOne({ _id: building._id });
@@ -90,7 +92,9 @@ router.post('/checkout', async (req, res) => {
     if (building.count > 0) {
       await db.collection('Buildings').updateOne(
         { _id: building._id },
-        { $inc: { count: -1 } }
+        { 
+          $inc: { count: -1, occupancy: -1 }
+        }
       );
     }
 
