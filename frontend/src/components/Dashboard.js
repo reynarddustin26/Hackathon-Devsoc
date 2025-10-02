@@ -166,10 +166,7 @@ function Dashboard() {
     </div>
   <header className="dashboard-header" id="dashboard-header">
       <div className="header-top">
-        <div className="header-logo-block header-logo-block-center">
-          <span className="logo-text-uniauto">UniAuto</span>
-        </div>
-        <div className="header-stats small-stats">
+        <div className="header-stats">
           <div className="stat-card">
             <div className="stat-number">{buildings.length}</div>
             <div className="stat-label">Buildings</div>
@@ -195,15 +192,7 @@ function Dashboard() {
       {error && <div className="error-message">{error}</div>}
     </header>
     
-
-  {/* Campus Map Section Anchor */}
-  <div id="campus-map-section"></div>
   {/* Leaderboard for Top 3 Busiest Buildings */}
-    {/* About Section */}
-    <section id="about-section" className="about-section">
-      <h2>About UniFlow</h2>
-      <p>UniFlow is a modern campus occupancy and crowd monitoring dashboard, designed to help students and staff find the best spaces in real time. Built with love by <b>Christian</b> and <b>Reynard</b>.</p>
-    </section>
     <div className="leaderboard">
       <h2>🏆 Top 3 Busiest Buildings</h2>
       <ol>
@@ -246,7 +235,15 @@ function Dashboard() {
       </select>
     </div>
 
+  {/* Campus Map Section Anchor */}
+  <div id="campus-map-section"></div>
     <InteractiveCampusMap buildings={filteredBuildings} />
+    
+    {/* About Section */}
+    <section id="about-section" className="about-section">
+      <h2>About UniFlow</h2>
+      <p>UniFlow is a modern campus occupancy and crowd monitoring dashboard, designed to help students and staff find the best spaces in real time. Built with love by <b>Christian</b> and <b>Reynard</b>.</p>
+    </section>
     
     <div className="last-updated">
       Last updated: {new Date().toLocaleTimeString()}

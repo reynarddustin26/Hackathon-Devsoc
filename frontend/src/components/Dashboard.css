@@ -31,7 +31,7 @@
 }
 /* About section styling */
 .about-section {
-  margin: 60px auto 30px auto;
+  margin: 40px auto 60px auto;
   max-width: 600px;
   background: rgba(255,255,255,0.85);
   border-radius: 18px;
@@ -340,7 +340,7 @@ header p {
   margin-bottom: 24px;
   flex-wrap: wrap;
   gap: 20px;
-  padding-right: 20px;
+  padding-right: 60px;
 }
 
 .header-stats {
