@@ -82,13 +82,13 @@
   align-items: center;
   justify-content: space-between;
   padding: 18px 40px 12px 40px;
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(251, 207, 232, 0.15) 100%);
-  box-shadow: 0 2px 12px rgba(99, 102, 241, 0.1);
+  background: transparent;
+  box-shadow: none;
   border-radius: 0;
   position: sticky;
   top: 0;
   z-index: 100;
-  backdrop-filter: blur(10px);
+  backdrop-filter: none;
 }
 .navbar-logo {
   display: flex;
@@ -96,7 +96,7 @@
 }
 
 .logo-image {
-  height: 165px;
+  height: 110px;
   width: auto;
   object-fit: contain;
   filter: drop-shadow(0 2px 8px rgba(129, 140, 248, 0.3));
