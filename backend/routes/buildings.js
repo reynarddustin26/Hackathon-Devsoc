@@ -1,50 +1,80 @@
 const express = require('express');
 const QRCode = require('qrcode');
-const fs = require('fs');
-const path = require('path');
 const router = express.Router();
+const connectDB = require('../utils/mongoClient');
 
-// Load buildings.json
-const dataPath = path.join(__dirname, '../data/buildings.json');
-let buildings = require('../data/buildings.json');
-
-// 🛠️ Helper to persist changes back to buildings.json
-function saveData() {
-  fs.writeFileSync(dataPath, JSON.stringify(buildings, null, 2), 'utf-8');
-}
-
-// 🟢 Helper: Find building by id OR name
-function findBuilding(identifier) {
+// 🔎 Helper: Find building by id OR name
+async function findBuilding(db, identifier) {
   if (!identifier) return null;
-  return buildings.find(
-    b =>
-      b.id.toLowerCase() === identifier.toLowerCase() ||
-      b.name.toLowerCase() === identifier.toLowerCase()
-  );
+  return db.collection('Buildings').findOne({
+    $or: [
+      { id: identifier.toLowerCase() },
+      { name: { $regex: new RegExp(`^${identifier}$`, 'i') } }
+    ]
+  });
 }
 
 // 🟢 GET /api/buildings → list all buildings
-router.get('/', (req, res) => {
-  res.json(buildings);
+router.get('/', async (req, res) => {
+  try {
+    const db = await connectDB();
+    const buildings = await db.collection('Buildings').find({}).toArray();
+    res.json(buildings);
+  } catch (err) {
+    console.error('❌ Error fetching buildings:', err);
+    res.status(500).json({ error: 'Failed to fetch buildings' });
+  }
 });
 
-// 🟢 POST /api/buildings/report → add crowdedness report
-router.post('/report', (req, res) => {
-  const { buildingId, crowdedness } = req.body;
-  const building = findBuilding(buildingId);
+// 🟢 POST /api/buildings/report → add/update crowdedness
+router.post('/report', async (req, res) => {
+  try {
+    const { buildingId, crowdedness } = req.body;
+    const db = await connectDB();
+    const building = await findBuilding(db, buildingId);
 
-  if (!building) {
-    return res.status(404).json({ error: 'Building not found' });
+    if (!building) {
+      return res.status(404).json({ error: 'Building not found' });
+    }
+
+    const newCrowdedness = (building.crowdedness + crowdedness) / 2;
+
+    await db.collection('Buildings').updateOne(
+      { _id: building._id },
+      { $set: { crowdedness: newCrowdedness } }
+    );
+
+    const updated = await db.collection('Buildings').findOne({ _id: building._id });
+    res.json({ message: 'Report added successfully', building: updated });
+  } catch (err) {
+    console.error('❌ Error reporting crowdedness:', err);
+    res.status(500).json({ error: 'Failed to update crowdedness' });
   }
-
-  // Update average crowdedness
-  building.crowdedness = (building.crowdedness + crowdedness) / 2;
-  saveData();
-
-  res.json({ message: 'Report added successfully', building });
 });
 
 // 🟢 POST /api/buildings/checkin → increment occupancy count
+router.post('/checkin', async (req, res) => {
+  try {
+    const { buildingId } = req.body;
+    const db = await connectDB();
+    const building = await findBuilding(db, buildingId);
+
+    if (!building) {
+      return res.status(404).json({ error: 'Building not found' });
+    }
+
+    await db.collection('Buildings').updateOne(
+      { _id: building._id },
+      { 
+        $inc: { count: 1, occupancy: 1 }
+      }
+    );
+
+    const updated = await db.collection('Buildings').findOne({ _id: building._id });
+    res.json({ message: 'Checked in successfully', building: updated });
+  } catch (err) {
+    console.error('❌ Error in checkin:', err);
+    res.status(500).json({ error: 'Failed to check in' }
 router.post('/checkin', (req, res) => {
   console.log('📥 Checkin request body:', req.body);
   const { buildingName } = req.body;
@@ -53,16 +83,37 @@ router.post('/checkin', (req, res) => {
   console.log('🏢 Found building:', building ? building.name : 'Not found');
 
   if (!building) {
-    return res.status(404).json({ error: 'Building not found' });
+    return res.status(404).json({ error: 'Building not found' }
   }
-
-  building.count++;
-  saveData();
-
-  res.json({ message: 'Checked in successfully', building });
 });
 
 // 🟢 POST /api/buildings/checkout → decrement occupancy count
+
+router.post('/checkout', async (req, res) => {
+  try {
+    const { buildingId } = req.body;
+    const db = await connectDB();
+    const building = await findBuilding(db, buildingId);
+
+    if (!building) {
+      return res.status(404).json({ error: 'Building not found' });
+    }
+
+    if (building.count > 0) {
+      await db.collection('Buildings').updateOne(
+        { _id: building._id },
+        { 
+          $inc: { count: -1, occupancy: -1 }
+        }
+      );
+    }
+
+    const updated = await db.collection('Buildings').findOne({ _id: building._id });
+    res.json({ message: 'Checked out successfully', building: updated });
+  } catch (err) {
+    console.error('❌ Error in checkout:', err);
+    res.status(500).json({ error: 'Failed to check out' });
+
 router.post('/checkout', (req, res) => {
   const { buildingName } = req.body;
   const building = findBuilding(buildingName);
@@ -72,57 +123,57 @@ router.post('/checkout', (req, res) => {
   if (!building) {
     return res.status(404).json({ error: 'Building not found' });
   }
-
-  if (building.count > 0) building.count--;
-  saveData();
-
-  res.json({ message: 'Checked out successfully', building });
 });
 
 // 🟢 GET /api/buildings/:id/qr → generate QR code
 router.get('/:id/qr', async (req, res) => {
-  const { id } = req.params;
-  const building = findBuilding(id);
-
-  if (!building) {
-    return res.status(404).json({ error: 'Building not found' });
-  }
-
-  // Link to frontend feedback/checkin page
-  const frontendUrl = `${process.env.FRONTEND_URL}/feedback/${building.id}`;
-
   try {
+    const { id } = req.params;
+    const db = await connectDB();
+    const building = await findBuilding(db, id);
+
+    if (!building) {
+      return res.status(404).json({ error: 'Building not found' });
+    }
+
+    const frontendUrl = `${process.env.FRONTEND_URL}/feedback/${building.id}`;
     const qrImage = await QRCode.toDataURL(frontendUrl);
+
     res.json({ building: building.name, qr: qrImage });
   } catch (err) {
+    console.error('❌ Error generating QR:', err);
     res.status(500).json({ error: 'Failed to generate QR' });
   }
 });
 
 // 🟢 POST /api/buildings/:id/review → submit review + crowdedness
-router.post('/:id/review', (req, res) => {
-  const { id } = req.params;
-  const { crowdedness, review } = req.body;
+router.post('/:id/review', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { crowdedness, review } = req.body;
+    const db = await connectDB();
+    const building = await findBuilding(db, id);
 
-  const building = findBuilding(id);
-  if (!building) {
-    return res.status(404).json({ error: 'Building not found' });
+    if (!building) {
+      return res.status(404).json({ error: 'Building not found' });
+    }
+
+    const newCrowdedness = (building.crowdedness + crowdedness) / 2;
+    const newReviews = building.reviews
+      ? [...building.reviews, { review, crowdedness, timestamp: new Date() }]
+      : [{ review, crowdedness, timestamp: new Date() }];
+
+    await db.collection('Buildings').updateOne(
+      { _id: building._id },
+      { $set: { crowdedness: newCrowdedness, reviews: newReviews } }
+    );
+
+    const updated = await db.collection('Buildings').findOne({ _id: building._id });
+    res.json({ message: 'Review submitted successfully', building: updated });
+  } catch (err) {
+    console.error('❌ Error submitting review:', err);
+    res.status(500).json({ error: 'Failed to submit review' });
   }
-
-  // Update crowdness (simple average)
-  building.crowdedness = (building.crowdedness + crowdedness) / 2;
-
-  // Add review
-  if (!building.reviews) building.reviews = [];
-  building.reviews.push({
-    review,
-    crowdedness,
-    timestamp: new Date()
-  });
-
-  saveData();
-
-  res.json({ message: 'Review submitted successfully', building });
 });
 
 module.exports = router;

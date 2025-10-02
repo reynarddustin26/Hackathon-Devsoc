@@ -1,3 +1,4 @@
+const API_BASE_URL = process.env.REACT_APP_BACKEND_URL || 'https://hackathon-dev-backend.onrender.com/api/buildings'; 
 // Use environment variable for API URL, fallback to production URL
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://hackathon-devsoc.onrender.com';
 
@@ -123,7 +124,7 @@ export const checkIn = async (buildingName) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        buildingName,
+        buildingId: buildingName, // Backend expects buildingId
         timestamp: new Date().toISOString(),
       }),
     });
@@ -133,12 +134,16 @@ export const checkIn = async (buildingName) => {
     }
     
     const result = await response.json();
+    // Fetch fresh data after check-in
+    const updatedData = await fetchBuildings();
+    notifyDataUpdate(updatedData);
+
     // Fetch latest building data to update UI
     await fetchBuildings();
     return result;
   } catch (error) {
     console.error('Error checking in:', error);
-    return { success: true, message: 'Check-in recorded (offline mode)' };
+    return { success: false, message: 'Check-in failed' };
   }
 };
 
@@ -152,7 +157,7 @@ export const checkOut = async (buildingName) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        buildingName,
+        buildingId: buildingName, // Backend expects buildingId
         timestamp: new Date().toISOString(),
       }),
     });
@@ -162,11 +167,15 @@ export const checkOut = async (buildingName) => {
     }
     
     const result = await response.json();
+    // Fetch fresh data after checkout
+    const updatedData = await fetchBuildings();
+    notifyDataUpdate(updatedData);
+
     // Fetch latest building data to update UI
     await fetchBuildings();
     return result;
   } catch (error) {
     console.error('Error checking out:', error);
-    return { success: true, message: 'Check-out recorded (offline mode)' };
+    return { success: false, message: 'Check-out failed' };
   }
 };
