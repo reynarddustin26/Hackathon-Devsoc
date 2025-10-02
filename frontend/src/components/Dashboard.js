@@ -146,6 +146,12 @@ function Dashboard() {
 
   return (
   <div className="dashboard">
+    {/* Decorative animated shapes */}
+    <div className="dashboard-decoration">
+      <div className="circle1"></div>
+      <div className="circle2"></div>
+      <div className="triangle"></div>
+    </div>
     <header className="dashboard-header">
       <div className="header-top">
         <Logo />

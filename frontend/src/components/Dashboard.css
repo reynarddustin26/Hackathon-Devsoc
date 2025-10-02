@@ -1,10 +1,67 @@
 .dashboard {
   min-height: 100vh;
-  background: linear-gradient(135deg, #2d3350 0%, #3b437a 100%);
+  background: linear-gradient(120deg, #e0e7ff 0%, #fbcfe8 100%);
   padding: 40px 20px;
   position: relative;
   overflow-x: hidden;
   font-family: 'Inter', 'Segoe UI', 'Roboto', 'Arial', sans-serif;
+}
+
+/* Decorative animated gradient shapes */
+.dashboard-decoration {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 1;
+}
+.dashboard-decoration .circle1 {
+  position: absolute;
+  top: 5%;
+  left: 10%;
+  width: 220px;
+  height: 220px;
+  background: radial-gradient(circle, #a5b4fc 0%, #818cf8 80%, transparent 100%);
+  opacity: 0.25;
+  border-radius: 50%;
+  animation: float1 8s ease-in-out infinite alternate;
+}
+.dashboard-decoration .circle2 {
+  position: absolute;
+  bottom: 8%;
+  right: 12%;
+  width: 180px;
+  height: 180px;
+  background: radial-gradient(circle, #fbcfe8 0%, #f472b6 80%, transparent 100%);
+  opacity: 0.18;
+  border-radius: 50%;
+  animation: float2 10s ease-in-out infinite alternate;
+}
+.dashboard-decoration .triangle {
+  position: absolute;
+  top: 30%;
+  right: 20%;
+  width: 0;
+  height: 0;
+  border-left: 60px solid transparent;
+  border-right: 60px solid transparent;
+  border-bottom: 100px solid #fcd34d44;
+  opacity: 0.13;
+  animation: float3 12s ease-in-out infinite alternate;
+}
+@keyframes float1 {
+  0% { transform: translateY(0) scale(1); }
+  100% { transform: translateY(30px) scale(1.08); }
+}
+@keyframes float2 {
+  0% { transform: translateY(0) scale(1); }
+  100% { transform: translateY(-24px) scale(1.04); }
+}
+@keyframes float3 {
+  0% { transform: translateY(0) rotate(-2deg); }
+  100% { transform: translateY(18px) rotate(4deg); }
 }
 .dashboard::before {
   content: '';
@@ -131,14 +188,14 @@ header p {
 }
 
 .dashboard-header {
-  background: rgba(30, 34, 54, 0.98);
-  border-radius: 18px;
-  padding: 32px 36px 24px 36px;
+  background: rgba(255,255,255,0.92);
+  border-radius: 22px;
+  padding: 38px 40px 28px 40px;
   margin-bottom: 30px;
-  border: 1px solid #232946;
-  box-shadow: 0 6px 32px rgba(99,102,241,0.13), 0 1.5px 6px rgba(0,0,0,0.09);
+  border: 1.5px solid #a5b4fc;
+  box-shadow: 0 8px 36px rgba(99,102,241,0.10), 0 2px 8px rgba(236,72,153,0.08);
   position: relative;
-  z-index: 2;
+  z-index: 10;
 }
 
 .header-top {
