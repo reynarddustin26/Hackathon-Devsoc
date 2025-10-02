@@ -46,8 +46,11 @@ router.post('/report', (req, res) => {
 
 // 🟢 POST /api/buildings/checkin → increment occupancy count
 router.post('/checkin', (req, res) => {
-  const { buildingId } = req.body;
-  const building = findBuilding(buildingId);
+  console.log('📥 Checkin request body:', req.body);
+  const { buildingName } = req.body;
+  const building = findBuilding(buildingName);
+  
+  console.log('🏢 Found building:', building ? building.name : 'Not found');
 
   if (!building) {
     return res.status(404).json({ error: 'Building not found' });
@@ -61,8 +64,10 @@ router.post('/checkin', (req, res) => {
 
 // 🟢 POST /api/buildings/checkout → decrement occupancy count
 router.post('/checkout', (req, res) => {
-  const { buildingId } = req.body;
-  const building = findBuilding(buildingId);
+  const { buildingName } = req.body;
+  const building = findBuilding(buildingName);
+  
+  console.log('🏢 Found building:', building ? building.name : 'Not found');
 
   if (!building) {
     return res.status(404).json({ error: 'Building not found' });
