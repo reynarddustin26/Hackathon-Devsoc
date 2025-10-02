@@ -340,6 +340,7 @@ header p {
   margin-bottom: 24px;
   flex-wrap: wrap;
   gap: 20px;
+  padding-right: 20px;
 }
 
 .header-stats {
